@@ -1,39 +1,49 @@
 # tests/test_domain.py
 # ==========================================
-# 雲端純邏輯單元測試 (含動態根目錄路徑保護)
+# 六角架構 - Domain / ViewModel 極速單元測試
 # ==========================================
 import os
 import sys
 
-# 動態將專案根目錄加入 Python 模組搜尋路徑，避免 ModuleNotFoundError
+# 註冊專案根目錄，防範模組匯入路徑問題
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import pytest
-from ports import IPermissionPort, IStoragePort
+from ports import IAudioPlayerPort, IAudioRecorderPort, IEqualizerPort, IPermissionPort, IStoragePort
 from viewmodel import RadioViewModel
+from adapters import (
+    DesktopPlayerAdapter,
+    DesktopRecorderAdapter,
+    DesktopEqualizerAdapter,
+    DesktopPermissionAdapter
+)
 
-class MockPermissionAdapter(IPermissionPort):
-    def request_audio_permission(self, callback):
-        # 模擬權限授權成功
-        if callback:
-            callback(True)
-
-class MockStorageAdapter(IStoragePort):
-    def get_save_directory(self) -> str:
-        # 模擬測試用儲存路徑
-        return "/tmp/mock_download"
-
-def test_viewmodel_initialization():
-    """測試 ViewModel 初始狀態"""
-    vm = RadioViewModel(MockPermissionAdapter(), MockStorageAdapter())
+def test_viewmodel_initial_state():
+    """測試 ViewModel 初始狀態是否正確"""
+    vm = RadioViewModel(
+        player=DesktopPlayerAdapter(),
+        recorder=DesktopRecorderAdapter(),
+        equalizer=DesktopEqualizerAdapter(),
+        permission=DesktopPermissionAdapter()
+    )
+    assert vm.is_playing is False
     assert vm.is_recording is False
-    assert vm.record_btn_text == "開始錄音"
     assert vm.status_info == "系統就緒"
 
-def test_recording_toggle_state():
-    """測試點擊錄音後的狀態切換邏輯"""
-    vm = RadioViewModel(MockPermissionAdapter(), MockStorageAdapter())
-    vm.on_record_button_click()
-    assert vm.is_recording is True
-    assert vm.record_btn_text == "停止錄音"
-    assert vm.status_info == "錄音中..."
+def test_viewmodel_toggle_play_flow():
+    """測試切換播放與暫停狀態邏輯"""
+    vm = RadioViewModel(
+        player=DesktopPlayerAdapter(),
+        recorder=DesktopRecorderAdapter(),
+        equalizer=DesktopEqualizerAdapter(),
+        permission=DesktopPermissionAdapter()
+    )
+    # 觸發播放
+    vm.toggle_play()
+    assert vm.is_playing is True
+    assert "正在播放" in vm.status_info
+
+    # 觸發停止
+    vm.toggle_play()
+    assert vm.is_playing is False
+    assert vm.status_info == "已停止播放"
