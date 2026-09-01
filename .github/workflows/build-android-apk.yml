@@ -24,9 +24,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest kivy
 
-      - name: 執行純邏輯單元測試
+      - name: 執行純邏輯單元測試 (指定專案根目錄路徑)
         run: |
-          pytest tests/
+          PYTHONPATH=. pytest tests/
 
   # Job 2: 雲端 Android APK 編譯打包
   build-apk:
