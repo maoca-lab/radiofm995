@@ -28,7 +28,7 @@ jobs:
         run: |
           PYTHONPATH=. pytest tests/
 
-  # Job 2: 原生雲端 Android APK 編譯打包 (不再依賴第三方 Action)
+  # Job 2: 原生雲端 Android APK 編譯打包 (修復管道破裂問題)
   build-apk:
     needs: test-core-logic
     runs-on: ubuntu-latest
@@ -41,19 +41,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 安裝 Ubuntu 原生編譯依賴與 Java JDK 17
+      - name: 安裝 Ubuntu 完整編譯依賴與 Java JDK 17
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk patchelf autoconf libtool
 
       - name: 安裝 Buildozer 與相容版 Cython
         run: |
           python -m pip install --upgrade pip setuptools
           pip install "Cython==0.29.33" buildozer
 
-      - name: 執行 Buildozer 自動化編譯
+      - name: 執行 Buildozer 自動化編譯 (無管道依賴)
         run: |
-          yes | buildozer -v android debug
+          buildozer -v android debug
 
       - name: 上傳 APK 成品至 Artifacts
         uses: actions/upload-artifact@v4
