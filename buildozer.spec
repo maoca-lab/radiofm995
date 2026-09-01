@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttc,ttf,json
 version = 1.0.0
 
 # (list) 應用程式依賴套件 (已鎖定 Cython==0.29.33 防編譯崩潰)
-requirements = python3,kivy==2.3.0,requests,urllib3,certifi,android,Cython==0.29.33
+requirements = python3,kivy==2.3.0,openssl,requests,urllib3,certifi,android
 
 # (str) 螢幕方向 (portrait: 直向, landscape: 橫向)
 orientation = portrait
@@ -43,7 +43,7 @@ android.ndk = 25b
 android.accept_sdk_license = True
 
 # (list) 支援的 CPU 架構
-android.archs = arm64-v8a, armeabi-v7a
+android.archs = arm64-v8a
 
 # (bool) 啟用 Android 介面升級
 p4a.branch = master
