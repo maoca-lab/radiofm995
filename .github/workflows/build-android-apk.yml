@@ -1,0 +1,32 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取回專案檔案
+        uses: actions/checkout@v4
+
+      - name: 清理舊編譯緩存
+        run: rm -rf .buildozer bin
+
+      - name: 用 Buildozer 編譯 APK
+        id: build
+        run: |
+          docker run --rm \
+            -v "$PWD":/home/user/host \
+            -w /home/user/host \
+            kivy/buildozer:latest \
+            android debug
+
+      - name: 上傳產出的 APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkradio-apk
+          path: ./bin/*.apk
