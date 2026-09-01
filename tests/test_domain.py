@@ -1,7 +1,13 @@
 # tests/test_domain.py
 # ==========================================
-# 雲端純邏輯單元測試 (解決 Pytest Exit Code 5 錯誤)
+# 雲端純邏輯單元測試 (含動態根目錄路徑保護)
 # ==========================================
+import os
+import sys
+
+# 動態將專案根目錄加入 Python 模組搜尋路徑，避免 ModuleNotFoundError
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import pytest
 from ports import IPermissionPort, IStoragePort
 from viewmodel import RadioViewModel
@@ -18,7 +24,7 @@ class MockStorageAdapter(IStoragePort):
         return "/tmp/mock_download"
 
 def test_viewmodel_initialization():
-    """測試 ViewModel 初始狀態 (確保 Pytest 成功收集測試)"""
+    """測試 ViewModel 初始狀態"""
     vm = RadioViewModel(MockPermissionAdapter(), MockStorageAdapter())
     assert vm.is_recording is False
     assert vm.record_btn_text == "開始錄音"
