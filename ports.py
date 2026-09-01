@@ -4,7 +4,7 @@
 # 作用：定義系統輸入/輸出合約，徹底隔離 Android 平台邊界
 # ==========================================
 from abc import ABC, abstractmethod
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Any
 
 class IAudioPlayerPort(ABC):
     """網路電台串流播放器介面"""
@@ -36,7 +36,6 @@ class IEqualizerPort(ABC):
     """音訊等化器介面"""
     @abstractmethod
     def get_bands(self) -> List[Dict[str, int]]:
-        """取得頻段清單: [{'band': 0, 'freq': 60, 'gain': 0}]"""
         pass
 
     @abstractmethod
@@ -48,5 +47,16 @@ class IPermissionPort(ABC):
     """系統權限請求介面"""
     @abstractmethod
     def request_audio_permission(self, callback: Callable[[bool], None]) -> None:
+        pass
+
+
+class IStoragePort(ABC):
+    """本機資料與偏好設定儲存介面"""
+    @abstractmethod
+    def save(self, key: str, value: Any) -> None:
+        pass
+
+    @abstractmethod
+    def load(self, key: str, default: Any = None) -> Any:
         pass
 
