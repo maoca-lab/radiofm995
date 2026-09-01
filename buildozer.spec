@@ -36,6 +36,9 @@ android.api = 33
 # (int) Minimum Android API (預設 21 支援 Android 5.0+)
 android.minapi = 21
 
+# (2) 強制指定使用穩定的 NDK r25b (防止自動下載破壞性的 NDK r28c)
+android.ndk = 25b
+
 # (bool) 自動接受 Android SDK 授權條款
 android.accept_sdk_license = True
 
