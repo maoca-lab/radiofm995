@@ -1,62 +1,64 @@
 # viewmodel.py
 # ==========================================
-# MVVM - ViewModel 狀態管理
+# 輕量 MVVM - ViewModel (純粹狀態管理)
+# 作用：完全解耦 UI 與平台硬體，僅透過 Ports 溝通
 # ==========================================
-import os
-import time
-from kivy.event import EventDispatcher
-from kivy.properties import StringProperty, BooleanProperty
-from kivy.clock import Clock
-from ports import IPermissionPort, IStoragePort
+from ports import IAudioPlayerPort, IAudioRecorderPort, IEqualizerPort, IPermissionPort
 
-class RadioViewModel(EventDispatcher):
-    record_btn_text = StringProperty("開始錄音")
-    record_timer_text = StringProperty("00:00")
-    is_recording = BooleanProperty(False)
-    status_info = StringProperty("系統就緒")
+class RadioViewModel:
+    def __init__(
+        self,
+        player: IAudioPlayerPort,
+        recorder: IAudioRecorderPort,
+        equalizer: IEqualizerPort,
+        permission: IPermissionPort
+    ):
+        self._player = player
+        self._recorder = recorder
+        self._equalizer = equalizer
+        self._permission = permission
 
-    def __init__(self, perm_port: IPermissionPort, storage_port: IStoragePort, **kwargs):
-        super().__init__(**kwargs)
-        self.perm_port = perm_port
-        self.storage_port = storage_port
-        self._start_time = 0
-        self._timer_event = None
-
-    def on_record_button_click(self):
-        if not self.is_recording:
-            self.perm_port.request_audio_permission(self._on_permission_result)
-        else:
-            self.stop_recording()
-
-    def _on_permission_result(self, granted: bool):
-        if granted:
-            self.start_recording()
-        else:
-            self.status_info = "錄音權限被拒絕"
-            self.record_timer_text = "無權限"
-
-    def start_recording(self):
-        self.is_recording = True
-        self.record_btn_text = "停止錄音"
-        self.status_info = "錄音中..."
-        self._start_time = time.time()
-        self._timer_event = Clock.schedule_interval(self._update_timer, 1)
-
-    def stop_recording(self):
+        # 應用程式純粹狀態 (States)
+        self.current_station = "水墨清音台 (FM 99.5)"
+        self.stream_url = "http://stream.example.com/live"
+        self.is_playing = False
         self.is_recording = False
-        self.record_btn_text = "開始錄音"
-        if self._timer_event:
-            self._timer_event.cancel()
-        
-        save_dir = self.storage_port.get_save_directory()
-        filename = f"錄音_{time.strftime('%m%d_%H%M%S')}.mp3"
-        save_path = os.path.join(save_dir, filename)
-        
-        self.record_timer_text = "已存檔"
-        self.status_info = f"檔案已儲存至 Download 資料夾"
-        print(f"[ViewModel] 儲存路徑: {save_path}")
+        self.status_info = "系統就緒"
+        self.auto_play_on_boot = False
 
-    def _update_timer(self, dt):
-        elapsed = int(time.time() - self._start_time)
-        mins, secs = divmod(elapsed, 60)
-        self.record_timer_text = f"{mins:02d}:{secs:02d}"
+    def toggle_play(self):
+        """控制播放 / 暫停狀態"""
+        if self.is_playing:
+            self._player.stop()
+            self.is_playing = False
+            self.status_info = "已停止播放"
+        else:
+            self._player.play(self.stream_url)
+            self.is_playing = True
+            self.status_info = f"正在播放: {self.current_station}"
+
+    def toggle_record(self):
+        """安全錄音流程（含權限檢查）"""
+        if self.is_recording:
+            saved_file = self._recorder.stop_recording()
+            self.is_recording = False
+            self.status_info = f"錄音儲存至: {saved_file}"
+        else:
+            def on_permission_result(granted: bool):
+                if granted:
+                    success = self._recorder.start_recording("/sdcard/Download/ink_radio.wav")
+                    if success:
+                        self.is_recording = True
+                        self.status_info = "錄音中..."
+                    else:
+                        self.status_info = "錄音啟動失敗"
+                else:
+                    self.status_info = "缺乏麥克風權限"
+
+            self._permission.request_audio_permission(on_permission_result)
+
+    def adjust_eq(self, band: int, level: int):
+        """調整 EQ 狀態"""
+        self._equalizer.set_band_level(band, level)
+        self.status_info = f"EQ 頻段 {band} 調整為 {level}"
+
