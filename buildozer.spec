@@ -1,100 +1,56 @@
 [app]
 
-# (str) Title of your application
+# (str) 應用程式標題
 title = 水墨電台
 
-# (str) Package name
+# (str) 套件名稱 (僅限小寫英文字母與數字)
 package.name = inkradio
 
-# (str) Package domain (needed for android/ios packaging)
+# (str) 套件網域 (反向網域名稱)
 package.domain = org.inkradio
 
-# (str) Source to include (let gradle handle the android entry point)
-source.include_exts = py,png,jpg,kv,json,atlas,ttf,ttc,otf
-
-# (list) Source files to include (let include_exts decide if empty)
-source.include_patterns = *
-
-# (list) List of inclusions using pattern matching
-source.exclude_patterns = bin,obj,*.pyc,*.pyo,build,dist
-
-# (str) Application versioning (method 1)
-version = 1.0
-
-# (str) Supported orientation (one of landscape/portrait/landscape-reverse/portrait-reverse/landscape|portrait)
-orientation = portrait
-
-# (list) List of service to declare
-# services = Name:Path
-
-# (list) Application requirements
-# 安卓上 jnius 由 buildozer 自動提供，不需列在 requirements
-# 加入 android 以取得動態權限請求模組 (android.permissions)
-requirements = python3,kivy,android
-
-# (str) Custom source folders for requirements
+# (str) 專案原始碼所在目錄
 source.dir = .
 
-# (list) Garden requirements
-# garden_requirements =
+# (list) 包含在 APK 中的檔案副檔名
+source.include_exts = py,png,jpg,kv,atlas,ttc,ttf,json
 
-# (str) Presplash of the application
-# presplash.filename = %(source.dir)s/data/presplash.png
+# (str) 應用程式版本號
+version = 1.0.0
 
-# (str) Icon of the application
-# icon.filename = %(source.dir)s/data/icon.png
+# (list) 應用程式依賴套件 (已鎖定 Cython==0.29.33 防編譯崩潰)
+requirements = python3,kivy==2.3.0,requests,urllib3,certifi,android,Cython==0.29.33
 
-# (bool) Indicate if the application should be fullscreen or not
+# (str) 螢幕方向 (portrait: 直向, landscape: 橫向)
+orientation = portrait
+
+# (bool) 是否全螢幕顯示
 fullscreen = 0
 
-# (list) Permissions
-android.permissions = INTERNET, WAKE_LOCK, ACCESS_NETWORK_STATE, RECEIVE_BOOT_COMPLETED, RECORD_AUDIO
+# (list) Android 系統權限
+android.permissions = INTERNET, ACCESS_NETWORK_STATE, RECORD_AUDIO, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE
 
-# (str) 額外 manifest（開機自播的 receiver 宣告）
-android.extra_manifest = extra_manifest.xml
+# (int) Target Android API (預設 33 相容主流系統)
+android.api = 33
 
-# (list) 額外 Java 原始碼（編譯進 APK）
-android.add_java_libs = java/
-
-# (int) Target Android API level (newer NDK needs 24+)
-android.api = 31
+# (int) Minimum Android API (預設 21 支援 Android 5.0+)
 android.minapi = 21
-android.ndk = 25b
 
-# (bool) Auto accept Android SDK licenses in non-interactive CI environment
+# (bool) 自動接受 Android SDK 授權條款
 android.accept_sdk_license = True
 
-# (list) Only build arm64 to save time and reduce failure points in CI
-android.archs = arm64-v8a
+# (list) 支援的 CPU 架構
+android.archs = arm64-v8a, armeabi-v7a
 
-# (bool) Show build log
-log_level = 2
+# (bool) 啟用 Android 介面升級
+p4a.branch = master
 
-# (str) Path to a custom kivy-requirements recipe (optional)
-# kivy.requirements = sdl2_ttf
-
-# (list) Android additional libraries to copy into libs/armeabi
-# android.add_libs_armeabi = libs/android/*.so
-
-# (bool) Android logcat filters
-# android.logcat_filters = *:S python:D
-
-# (list) Android application meta-data to set (key=value format)
-# android.meta_data =
-
-# (list) Android service to declare
-# android.services =
 
 [buildozer]
 
-# (int) Log level (0 = silent, 1 = important, 2 = all)
+# (int) 日誌輸出級別 (2 表示詳細除錯模式)
 log_level = 2
 
-# (str) Path of the build cache
-build_dir = ./.buildozer
+# (str) 警告提示過濾
+warn_on_root = 1
 
-# (str) Path to build output (usually ./(target)platform/(type))
-bin_dir = ./bin
-
-# (str,bool) Warn if buildozer is run as root
-warn_on_root = 0
