@@ -28,7 +28,7 @@ jobs:
         run: |
           PYTHONPATH=. pytest tests/
 
-  # Job 2: 雲端 Android APK 編譯打包
+  # Job 2: 原生雲端 Android APK 編譯打包 (不再依賴第三方 Action)
   build-apk:
     needs: test-core-logic
     runs-on: ubuntu-latest
@@ -36,21 +36,24 @@ jobs:
       - name: 檢出專案程式碼
         uses: actions/checkout@v4
 
-      - name: 設定雲端 Python 並鎖定相容的 Cython 版本
+      - name: 設定雲端 Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: 安裝 Buildozer 與指定相容版本的 Cython
+      - name: 安裝 Ubuntu 原生編譯依賴與 Java JDK 17
         run: |
-          python -m pip install --upgrade pip
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk
+
+      - name: 安裝 Buildozer 與相容版 Cython
+        run: |
+          python -m pip install --upgrade pip setuptools
           pip install "Cython==0.29.33" buildozer
 
-      - name: 使用 Buildozer 雲端編譯 APK
-        uses: ArtemSydoryk/buildozer-action@v1
-        with:
-          workdir: .
-          buildozer_version: master
+      - name: 執行 Buildozer 自動化編譯
+        run: |
+          yes | buildozer -v android debug
 
       - name: 上傳 APK 成品至 Artifacts
         uses: actions/upload-artifact@v4
