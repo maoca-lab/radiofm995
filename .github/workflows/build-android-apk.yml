@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  # Job 1: 雲端極速單元測試
+  # Job 1: 雲端極速單元測試 (確保領域邏輯正確)
   test-core-logic:
     runs-on: ubuntu-latest
     steps:
@@ -24,11 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest kivy
 
-      - name: 執行純邏輯單元測試 (指定專案根目錄路徑)
+      - name: 執行純邏輯單元測試 (含根目錄路徑保護)
         run: |
           PYTHONPATH=. pytest tests/
 
-  # Job 2: 原生雲端 Android APK 編譯打包 (修復管道破裂問題)
+  # Job 2: 使用 Kivy 官方 Action 進行 Android APK 打包
   build-apk:
     needs: test-core-logic
     runs-on: ubuntu-latest
@@ -36,24 +36,11 @@ jobs:
       - name: 檢出專案程式碼
         uses: actions/checkout@v4
 
-      - name: 設定雲端 Python 3.10
-        uses: actions/setup-python@v5
+      - name: 呼叫 Kivy 官方 Buildozer Action 打包
+        uses: kivy/buildozer-action@v1
         with:
-          python-version: '3.10'
-
-      - name: 安裝 Ubuntu 完整編譯依賴與 Java JDK 17
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk patchelf autoconf libtool
-
-      - name: 安裝 Buildozer 與相容版 Cython
-        run: |
-          python -m pip install --upgrade pip setuptools
-          pip install "Cython==0.29.33" buildozer
-
-      - name: 執行 Buildozer 自動化編譯 (無管道依賴)
-        run: |
-          buildozer -v android debug
+          command: buildozer -v android debug
+          buildozer_version: stable
 
       - name: 上傳 APK 成品至 Artifacts
         uses: actions/upload-artifact@v4
